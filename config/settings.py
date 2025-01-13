@@ -47,7 +47,9 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
     
-    #app
+    'rest_framework_swagger',
+    'drf_yasg' 
+    
     'users'
 ]
 
