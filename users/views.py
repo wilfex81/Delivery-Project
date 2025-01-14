@@ -219,3 +219,33 @@ class UserLogout(APIView):
 
         logout(request)
         return Response({"detail": "Successfully logged out."}, status=status.HTTP_200_OK)
+
+class DeleteUser(APIView):
+    """
+    Deletes a user from the database.
+
+    This class handles the logic for deleting a user from the database.
+    """
+    permission_classes = [IsAdminUser, IsAuthenticated]
+
+    def delete(self, request, email=None):
+        """
+        Handle the DELETE request for deleting a user.
+
+        Args:
+            request: HTTP request object.
+            email: Email address of the user to be deleted.
+
+        Returns:
+            Response indicating whether the user was deleted successfully.
+        """
+        if not email:
+            return Response({"error": "Email is required to delete a user"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        user.delete()
+        return Response({"message": "User deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
