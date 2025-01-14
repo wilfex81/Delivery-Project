@@ -14,7 +14,8 @@ from django.utils.translation import gettext_lazy as _
 from .models import User
 
 class UserSerializer(serializers.ModelSerializer):
-    """Serializer user data"""
+    """Serializer for user data"""
+    
     class Meta:
         model = User
         fields = [
@@ -28,57 +29,60 @@ class UserSerializer(serializers.ModelSerializer):
             'license_status',
             'passport_or_id',
             'role',
+            'password',
         ]
         extra_kwargs = {
-            'password': {'write_only', True},
-            'is_admin': {'read_only', True},
-            'is_active': {'read_only', True},
-            'is_verified': {'read_only', True},
+            'password': {'write_only': True},
+            'is_admin': {'read_only': True},
+            'is_active': {'read_only': True},
+            'is_verified': {'read_only': True},
         }
+
+    def create(self, validated_data):
+        password = validated_data.pop('password', None)
+        user = User(
+            email=validated_data['email'],
+            phone=validated_data['phone'],
+            first_name=validated_data['first_name'],
+            middle_name=validated_data.get('middle_name', ''),
+            last_name=validated_data['last_name'],
+            username=validated_data['username'],
+            business_name=validated_data['business_name'],
+            license_status=validated_data['license_status'],
+            passport_or_id=validated_data['passport_or_id'],
+            role=validated_data['role'],
+        )
+
+        if password:
+            user.set_password(password)
+        user.save()
+        return user
+
+    def update(self, instance, validated_data):
+        password = validated_data.pop('password', None)
         
-        def create(self, validate_data):
-            password = validate_data.pop('password', None)
-            user = User(
-                email = validate_data['email'],
-                phone = validate_data['phone'],
-                first_name = validate_data['first_name'],
-                middle_name = validate_data['middle_name', ''],
-                last_name = validate_data['last_name'],
-                username = validate_data['username'],
-                business_name =validate_data['business_name'],
-                license_status = validate_data['license_status'],
-                passport_or_id = validate_data['passport_or_id'],
-                role = validate_data['role'],
-            )
-            
-            if password:
-                user.set_password(password)
-            user.save()
-            return user
+        instance.email = validated_data.get('email', instance.email)
+        instance.phone = validated_data.get('phone', instance.phone)
+        instance.first_name = validated_data.get('first_name', instance.first_name)
+        instance.middle_name = validated_data.get('middle_name', instance.middle_name)
+        instance.last_name = validated_data.get('last_name', instance.last_name)
+        instance.username = validated_data.get('username', instance.username)
+        instance.business_name = validated_data.get('business_name', instance.business_name)
+        instance.license_status = validated_data.get('license_status', instance.license_status)
+        instance.passport_or_id = validated_data.get('passport_or_id', instance.passport_or_id)
+        instance.role = validated_data.get('role', instance.role)
+
+        if password:
+            instance.set_password(password)
         
-        def update(self, instance, validated_data):
-            password = validated_data.pop('passwrord', None)
-            instance.email = validated_data.get('email', instance.email),
-            instance.phone = validated_data.get('phone', instance.phone),
-            instance.first_name = validated_data.get('first_name', instance.first_name),
-            instance.middle_name = validated_data.get('middle_name', instance.middle_name),
-            instance.last_name = validated_data.get('last_name', instance.last_name),
-            instance.username = validated_data.get('username', instance.username),
-            instance.business_name = validated_data.get('business_name', instance.business_name),
-            instance.license_status = validated_data.get('license_status', instance.license_status),
-            instance.passport_or_id = validated_data.get('passport_or_id', instance.passport_or_id),
-            instance.role = validated_data.get('role', instance.role)
-            
-            if password:
-                instance.set_password(password)
-            instance.save()
-            return instance
+        instance.save()
+        return instance
    
 
 class CustomTokenRefreshSerializer(TokenRefreshSerializer):
     """
     Custom jwt auth token
-    """
+    """    
     def validate(self, attrs):
         refresh = RefreshToken(attrs['refresh'])
 
