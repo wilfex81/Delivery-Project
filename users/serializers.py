@@ -202,3 +202,165 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
                 raise serializers.ValidationError('Invalid credentials')
 
         return super().validate(credentials)
+    
+
+class ChangePasswordSerializer(serializers.Serializer):
+    """
+    Handles changing password for authenticated users
+    """
+
+    current_password = serializers.CharField(required=True)
+    new_password = serializers.CharField(required=True, min_length=8)
+    confirm_new_password = serializers.CharField(required=True, min_length=8)
+
+    def validate(self, attrs):
+        """
+        Validate that the current password is correct and the new password match.
+        """
+        user = self.context['request'].user
+        current_password = attrs.get('current_password')
+        new_password = attrs.get('new_password')
+        confirm_new_password = attrs.get('confirm_new_password')
+
+        if not user.check_password(current_password):
+            raise serializers.ValidationError({"current_password": _("Current password is incorrect.")})
+
+        if new_password != confirm_new_password:
+            raise serializers.ValidationError({"new_password": _("New passwords do not match.")})
+
+        has_digit = False
+        has_lower = False
+        has_upper = False
+        has_special = False
+
+        for char in new_password:
+            if has_digit and has_lower and has_upper and has_special:
+                break
+            if char.isdigit():
+                has_digit = True
+            elif char.islower():
+                has_lower = True
+            elif char.isupper():
+                has_upper = True
+            elif char in '@$!%*?&':
+                has_special = True
+
+        if not has_digit:
+            raise serializers.ValidationError({"new_password": _("Password must contain at least one digit.")})
+        if not has_lower:
+            raise serializers.ValidationError({"new_password": _("Password must contain at least one lowercase letter.")})
+        if not has_upper:
+            raise serializers.ValidationError({"new_password": _("Password must contain at least one uppercase letter.")})
+        if not has_special:
+            raise serializers.ValidationError({"new_password": _("Password must contain at least one special character (e.g. @$!%*?&).")})
+
+        if new_password == new_password.lower() or new_password ==new_password.upper():
+            raise serializers.ValidationError({"new_password": _("Password must contain both uppercase and lowercase letters.")})
+
+        return attrs
+
+    def save(self, **kwargs):
+        """
+        save the new password for the user
+        """
+
+        user = self.context['request'].user
+        user.set_password(self.validate_data['new_password'])
+        user.save()
+        
+            
+class PasswordResetSerializer(serializers.Serializer):
+    """
+    Hand;es password reset at the login level
+    """
+    new_password = serializers.CharField(required=True, min_length=8)
+    confirm_password = serializers.CharField(required=True, min_length=8)
+
+    def validate(self, attrs):
+        """
+        Validate the new passwords ensuring they actually meet the rerequirements
+        """
+        new_password = attrs.get('new_password')
+        confirm_password = attrs.get('confirm_password')
+
+        if new_password != confirm_password:
+            raise serializers.ValidationError({"new_password": _("New Passwords do not match")})
+
+        has_digit  = False
+        has_lower = False
+        has_upper = False
+        has_special = False
+
+        for char in new_password:
+            if has_digit  and has_lower and has_upper and has_special:
+                break
+            if char.isdigit():
+                has_digit = True
+            elif char.islower():
+                has_lower = True
+            elif char.isupper():
+                has_upper = True
+            elif char in '@$!%*?&':
+                has_special = True
+
+        if not has_digit:
+            raise serializers.ValidationError({"new_password": _("Password must contain at least one digit.")})
+        if not has_lower:
+            raise serializers.ValidationError({"new_password": _("Password must contain at least one lowercase letter.")})
+        if not has_upper:
+            raise serializers.ValidationError({"new_password": _("Password must contain at least one uppercase letter.")})
+        if not has_special:
+            raise serializers.ValidationError({"new_password": _("Password must contain at least one special character (e.g. @$!%*?&).")})
+
+        if new_password == new_password.lower() or new_password == new_password.upper():
+            raise serializers.ValidationError({"new_password": _("Password must contain both uppercase and lowercase letters.")})
+
+        return attrs
+        
+class PasswordResetSerializer(serializers.Serializer):
+    """
+    Hand;es password reset at the login level
+    """
+    new_password = serializers.CharField(required=True, min_length=8)
+    confirm_password = serializers.CharField(required=True, min_length=8)
+
+    def validate(self, attrs):
+        """
+        Validate the new passwords ensuring they actually meet the rerequirements
+        """
+        new_password = attrs.get('new_password')
+        confirm_password = attrs.get('confirm_password')
+
+        if new_password != confirm_password:
+            raise serializers.ValidationError({"new_password": _("New Passwords do not match")})
+
+        has_digit  = False
+        has_lower = False
+        has_upper = False
+        has_special = False
+
+        for char in new_password:
+            if has_digit  and has_lower and has_upper and has_special:
+                break
+            if char.isdigit():
+                has_digit = True
+            elif char.islower():
+                has_lower = True
+            elif char.isupper():
+                has_upper = True
+            elif char in '@$!%*?&':
+                has_special = True
+
+        if not has_digit:
+            raise serializers.ValidationError({"new_password": _("Password must contain at least one digit.")})
+        if not has_lower:
+            raise serializers.ValidationError({"new_password": _("Password must contain at least one lowercase letter.")})
+        if not has_upper:
+            raise serializers.ValidationError({"new_password": _("Password must contain at least one uppercase letter.")})
+        if not has_special:
+            raise serializers.ValidationError({"new_password": _("Password must contain at least one special character (e.g. @$!%*?&).")})
+
+        if new_password == new_password.lower() or new_password == new_password.upper():
+            raise serializers.ValidationError({"new_password": _("Password must contain both uppercase and lowercase letters.")})
+
+        return attrs
