@@ -8,6 +8,7 @@ from django.template.loader import render_to_string
 from django.core.mail import EmailMultiAlternatives
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
+from django.contrib.auth import logout
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -18,6 +19,7 @@ from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
 )
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
@@ -181,3 +183,39 @@ class PasswordResetConfirm(APIView):
         user.save()
 
         return Response({"message": "Password reset successful"}, status=status.HTTP_200_OK)
+    
+class UserLogout(APIView):
+    """
+    Handles user logout by ensuring the client removes the refresh token.
+    """
+    permission_classes = (IsAuthenticated,)
+
+    @swagger_auto_schema(
+        operation_summary="User Logout",
+        responses={200: "OK"},
+    )
+    def post(self, request):
+        """
+        Logs out the user by invalidating the token on the client-side.
+
+        Args:
+            request: The HTTP request containing the refresh token.
+
+        Returns:
+            Response indicating successful logout.
+        """
+        try:
+            refresh_token = request.data.get("refresh_token")
+            if not refresh_token:
+                return Response(
+                    {"error": "Refresh token is required for logout."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            token = RefreshToken(refresh_token)
+
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+        logout(request)
+        return Response({"detail": "Successfully logged out."}, status=status.HTTP_200_OK)
